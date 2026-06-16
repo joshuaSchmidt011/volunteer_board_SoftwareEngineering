@@ -1,0 +1,15 @@
+:root {
+  font-family: Arial, Helvetica, sans-serif;
+  color: #102033;
+  background: #f3f7f5;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+}
