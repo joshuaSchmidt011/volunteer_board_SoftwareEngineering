@@ -28,32 +28,32 @@ function App() {
   }, [opportunities, selectedOpportunityId]);
 
   useEffect(() => {
-    async function loadInitialData() {
-      try {
-        const [opportunityResponse, signupResponse, healthResponse] = await Promise.all([
-          fetch(`${API_BASE_URL}/api/opportunities`),
-          fetch(`${API_BASE_URL}/api/signups`),
-          fetch(`${API_BASE_URL}/api/health`)
-        ]);
-
-        const opportunityData = await opportunityResponse.json();
-        const signupData = await signupResponse.json();
-        const healthData = await healthResponse.json();
-
-        setOpportunities(opportunityData);
-        setSignups(signupData);
-        setSelectedOpportunityId(opportunityData[0]?.id ?? null);
-        setHealth(healthData);
-      } catch (error) {
-        console.error("Error loading application data:", error);
-        setMessage("The frontend loaded, but the backend API could not be reached. Make sure the server is running on port 5000.");
-      } finally {
-        setLoading(false);
-      }
-    }
-
     loadInitialData();
   }, []);
+
+  async function loadInitialData() {
+    try {
+      const [opportunityResponse, signupResponse, healthResponse] = await Promise.all([
+        fetch(`${API_BASE_URL}/api/opportunities`),
+        fetch(`${API_BASE_URL}/api/signups`),
+        fetch(`${API_BASE_URL}/api/health`)
+      ]);
+
+      const opportunityData = await opportunityResponse.json();
+      const signupData = await signupResponse.json();
+      const healthData = await healthResponse.json();
+
+      setOpportunities(opportunityData);
+      setSignups(signupData);
+      setSelectedOpportunityId(opportunityData[0]?.id ?? null);
+      setHealth(healthData);
+    } catch (error) {
+      console.error("Error loading application data:", error);
+      setMessage("The frontend loaded, but the backend API could not be reached. Make sure the server is running on port 5000.");
+    } finally {
+      setLoading(false);
+    }
+  }
 
   async function handlePrototypeLogin(event) {
     event.preventDefault();
@@ -121,7 +121,7 @@ function App() {
           <p className="tag">Code Milestone 1</p>
           <h1>Volunteer Match Board</h1>
           <p className="hero-copy">
-            A React and Node/Express prototype for helping volunteers browse local opportunities,
+            A React, Node/Express, and PostgreSQL-ready prototype for helping volunteers browse local opportunities,
             sign up for events, and preview future organization/admin features.
           </p>
           <div className="hero-actions">
@@ -133,8 +133,8 @@ function App() {
           <h2>Milestone Status</h2>
           <p><strong>Frontend:</strong> React/Vite</p>
           <p><strong>Backend:</strong> Express API</p>
-          <p><strong>Data:</strong> In-memory seed data</p>
-          <p><strong>Next:</strong> PostgreSQL + full authentication</p>
+          <p><strong>Data Source:</strong> {health?.dataSource || "checking..."}</p>
+          <p><strong>Database:</strong> {health?.database?.message || "waiting for backend health check"}</p>
         </aside>
       </section>
 
@@ -163,13 +163,16 @@ function App() {
 
         <div className="panel">
           <p className="tag">System Health</p>
-          <h2>Backend API Check</h2>
+          <h2>Backend and Database Check</h2>
           {health ? (
-            <ul className="check-list">
-              {health.implementedFeatures.map((feature) => (
-                <li key={feature}>{feature}</li>
-              ))}
-            </ul>
+            <>
+              <p><strong>Mode:</strong> {health.dataSource}</p>
+              <ul className="check-list">
+                {health.implementedFeatures.map((feature) => (
+                  <li key={feature}>{feature}</li>
+                ))}
+              </ul>
+            </>
           ) : (
             <p>Health data is not loaded yet.</p>
           )}
@@ -273,8 +276,8 @@ function App() {
         <p className="tag">Organization Admin Prototype</p>
         <h2>Create a Sample Opportunity</h2>
         <p>
-          This form demonstrates the planned organization/admin workflow. Entries are saved in memory
-          during the running session and will reset when the server restarts.
+          This form demonstrates the planned organization/admin workflow. If PostgreSQL is configured,
+          entries are saved to the database. If not, they are saved in memory until the server restarts.
         </p>
         <form onSubmit={handleAddOpportunity} className="admin-form">
           <input name="title" value={adminForm.title} onChange={updateAdminForm} placeholder="Opportunity title" />

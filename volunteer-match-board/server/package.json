@@ -1,7 +1,7 @@
 {
-  "name": "server",
+  "name": "volunteer-match-board-server",
   "version": "1.0.0",
-  "description": "",
+  "description": "Node/Express backend for the Volunteer Match Board Code Milestone 1 prototype.",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
@@ -12,6 +12,8 @@
   "type": "commonjs",
   "dependencies": {
     "cors": "^2.8.6",
-    "express": "^5.2.1"
+    "dotenv": "^16.4.7",
+    "express": "^5.2.1",
+    "pg": "^8.13.1"
   }
 }
