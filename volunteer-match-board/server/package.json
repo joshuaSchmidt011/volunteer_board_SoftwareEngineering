@@ -1,19 +1,25 @@
 {
   "name": "volunteer-match-board-server",
-  "version": "1.0.0",
-  "description": "Node/Express backend for the Volunteer Match Board Code Milestone 1 prototype.",
+  "version": "2.0.0",
+  "description": "Node/Express backend for the Volunteer Match Board Code Milestone 2 prototype.",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js"
+    "start": "node index.js",
+    "test:api": "node api-test.mjs"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "volunteer",
+    "express",
+    "postgresql",
+    "milestone"
+  ],
+  "author": "Joshua Schmidt and Jacob Linke",
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
     "cors": "^2.8.6",
-    "dotenv": "^16.4.7",
+    "dotenv": "^17.2.3",
     "express": "^5.2.1",
-    "pg": "^8.13.1"
+    "pg": "^8.16.3"
   }
 }

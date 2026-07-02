@@ -1,74 +1,110 @@
-# Volunteer Match Board - Code Milestone 1
+# Volunteer Match Board - Code Milestone 2
 
-Volunteer Match Board is a prototype web application for connecting volunteers with local volunteer opportunities. The long-term goal of the project is to allow organizations to post opportunities, allow volunteers to browse and sign up for events, and eventually support location-based opportunity discovery through Google Maps.
+Volunteer Match Board is a React, Node/Express, and PostgreSQL-ready prototype for connecting volunteers with local volunteer opportunities. Milestone 2 expands the project from a basic opportunity board into a role-based application with volunteer accounts, organization accounts, secure password handling, signups, and dashboards.
 
-This Code Milestone 1 version focuses on establishing the project foundation. It includes a React frontend, a Node.js/Express backend API, PostgreSQL database support, automatic table creation/seed data, a prototype volunteer signup flow, and a prototype organization/admin opportunity creation flow.
+## Milestone 2 Feature Summary
 
-## Current Stack
+### Public / Guest Flow
 
-* React.js frontend using Vite
-* Node.js/Express backend
-* PostgreSQL database
-* `pg` package for PostgreSQL connection support
-* Automatic table creation and seed data when the backend connects to PostgreSQL
-* In-memory fallback only if the PostgreSQL connection attempt fails
-* Planned future Google Maps API integration
+- Guests land on a generic public opportunity board.
+- Guests can browse and search opportunities.
+- Guests cannot sign up until they log in as volunteers.
+
+### Account Flow
+
+- Users can create either a `volunteer` account or an `organization` account.
+- Email addresses are validated before account creation.
+- Passwords must include:
+  - at least 8 characters
+  - one uppercase letter
+  - one number
+  - one special character
+- Passwords are stored as salted hashes using Node's built-in `crypto.scryptSync`, not as plaintext.
+- Logged-in sessions use temporary server-side tokens for the demo.
+
+### Volunteer Flow
+
+- Volunteers can sign up for available opportunities.
+- Volunteers cannot sign up for the same opportunity twice.
+- The main page shows a horizontal row of the volunteer's current signups.
+- The volunteer dashboard shows all signed-up opportunities as detailed vertical cards.
+
+### Organization Flow
+
+- Organization accounts are separate from volunteer accounts.
+- Organizations can create/post opportunities.
+- Organizations cannot sign up for opportunities.
+- The organization dashboard shows the events created by that organization.
+- Each organization event card lists the volunteers who signed up.
+
+### Backend / Database Flow
+
+- The backend supports PostgreSQL through `DATABASE_URL`.
+- If PostgreSQL is not configured, the app falls back to in-memory demo data so the project still runs for a class demo.
+- The health endpoint reports whether the app is running with PostgreSQL or the in-memory fallback.
 
 ## Project Structure
 
 ```text
-volunteer-match-board-postgres-attempt-first/
+volunteer-match-board-milestone2/
 ├── client/              # React/Vite frontend
-├── server/              # Node/Express backend
-│   ├── index.js         # API routes
-│   ├── db.js            # PostgreSQL connection and table setup
-│   ├── schema.sql       # Optional SQL schema reference
-│   ├── .env.example     # Example database environment config
+│   ├── src/App.jsx      # Main app, pages, account flow, dashboards
+│   ├── src/App.css      # Updated Milestone 2 styling
 │   └── package.json
-├── README.md
+├── server/              # Node/Express backend
+│   ├── index.js         # API routes, auth, role checks, signup logic
+│   ├── db.js            # PostgreSQL connection helper
+│   ├── schema.sql       # Milestone 2 database schema and seed data
+│   ├── .env.example     # Example PostgreSQL config
+│   └── package.json
 ├── QUICK_START_WINDOWS.md
-├── SUBMISSION_TEXT.md
-└── .gitignore
+└── SUBMISSION_TEXT.md
 ```
 
-## Database Setup
+## Demo Accounts
 
-This milestone uses PostgreSQL as the main backend data source.
+These accounts are seeded in both PostgreSQL mode and in-memory fallback mode.
 
-For the local development setup used in this milestone, PostgreSQL was installed locally and connected through the backend server. The backend attempts to connect to PostgreSQL when it starts. If the connection works, the backend automatically creates/checks the required tables and inserts the sample opportunity data.
+| Role | Email | Password |
+|---|---|---|
+| Volunteer | `demo.volunteer@example.com` | `Password1!` |
+| Organization | `org.admin@example.com` | `Password1!` |
+| Organization | `parks.admin@example.com` | `Password1!` |
 
-The expected local database is:
+## API Endpoints
 
-```text
-Database name: volunteer_match_board
-Username: postgres
-Password: postgres
-Port: 5432
-```
+### Public
 
-The default local connection string used by the backend is:
+- `GET /api/health`
+- `GET /api/opportunities`
+- `GET /api/opportunities/:id`
 
-```text
-postgres://postgres:postgres@localhost:5432/volunteer_match_board
-```
+### Authentication
 
-A `.env` file may also be created inside the `server/` folder using the format below:
+- `POST /api/auth/register`
+- `POST /api/auth/login`
+- `GET /api/auth/me`
+- `POST /api/auth/logout`
 
-```env
-DATABASE_URL=postgres://postgres:postgres@localhost:5432/volunteer_match_board
-ALLOW_IN_MEMORY_FALLBACK=true
-PORT=5000
-```
+### Volunteer-only
 
-The real `.env` file should not be uploaded to GitHub because it may contain local database credentials. The included `.env.example` file shows the expected format.
+- `POST /api/signups`
+- `GET /api/me/signups`
 
-## How to Run the Application
+### Organization-only
 
-This project uses two terminal windows: one for the backend server and one for the frontend client.
+- `POST /api/opportunities`
+- `GET /api/org/opportunities`
 
-### 1. Start the backend
+### Demo / Backward-Compatible
 
-Open a terminal in the project folder and run:
+- `GET /api/signups`
+
+## Run Without PostgreSQL
+
+This is the fastest demo path. The backend will use in-memory seed data.
+
+### Start the backend
 
 ```bash
 cd server
@@ -82,27 +118,9 @@ The backend runs at:
 http://localhost:5000
 ```
 
-When PostgreSQL is connected correctly, the backend terminal should show:
+### Start the frontend
 
-```text
-PostgreSQL connection is active. Tables were checked/created automatically.
-```
-
-The database status can also be checked at:
-
-```text
-http://localhost:5000/api/health
-```
-
-A successful PostgreSQL connection will show:
-
-```json
-"dataSource": "postgresql"
-```
-
-### 2. Start the frontend
-
-Open a second terminal window and run:
+Open a second terminal:
 
 ```bash
 cd client
@@ -116,93 +134,63 @@ The frontend usually runs at:
 http://localhost:5173
 ```
 
-Open that URL in a browser to use the application.
+## Run With PostgreSQL
 
-## Useful Backend Routes
+### 1. Create a database
+
+Example database name:
 
 ```text
-GET  http://localhost:5000/
-GET  http://localhost:5000/api/health
-GET  http://localhost:5000/api/opportunities
-GET  http://localhost:5000/api/signups
-POST http://localhost:5000/api/signups
-POST http://localhost:5000/api/opportunities
-POST http://localhost:5000/api/auth/login
+volunteer_match_board
 ```
 
-The `/api/health` route reports whether the backend is connected to PostgreSQL or whether it fell back after a failed PostgreSQL connection attempt.
+### 2. Configure the server environment
 
-## Implemented Prototype Features
+Copy the example env file:
 
-* React frontend displays the Volunteer Match Board interface.
-* Express backend serves API data to the frontend.
-* Backend attempts PostgreSQL first on startup.
-* PostgreSQL connection is working locally.
-* PostgreSQL tables are created/checked automatically when the backend starts.
-* Sample opportunity data is inserted into the database.
-* Frontend fetches volunteer opportunity data from the backend API.
-* Volunteer login area shows where authentication will fit in the application.
-* Volunteer signup flow creates signup records.
-* Dashboard preview displays current signups.
-* Organization/admin prototype allows a new opportunity to be created.
-* Backend health endpoint reports the current milestone status and database mode.
-* In-memory fallback exists only as a backup if PostgreSQL is unavailable.
+```bash
+cd server
+copy .env.example .env
+```
 
-## How to Use the Prototype
+Update `.env` with your local PostgreSQL username, password, host, port, and database name:
 
-1. Start the backend server.
-2. Start the frontend client.
-3. Open the frontend in the browser.
-4. Check the milestone status card to confirm the backend/database status.
-5. Use the prototype login area.
-6. Browse the available volunteer opportunities.
-7. Sign up for an opportunity.
-8. View the signup in the dashboard preview.
-9. Use the organization/admin prototype form to create a new opportunity.
-10. Refresh the page to confirm that backend data is still being loaded through the API.
+```text
+DATABASE_URL=postgres://postgres:your_password@localhost:5432/volunteer_match_board
+USE_POSTGRES=true
+PORT=5000
+```
 
-## Planned Future Work
+### 3. Run the schema
 
-* Add full user registration and login authentication.
-* Add organization/admin accounts and permissions.
-* Add full volunteer dashboard and signup history.
-* Add stronger form validation and error handling.
-* Add Google Maps API support for location-based opportunity browsing.
-* Add automated tests for API routes and frontend behavior.
-* Improve deployment setup for a hosted frontend, hosted backend, and hosted PostgreSQL database.
+From the `server` folder:
 
-## Release Notes - Code Milestone 1
+```bash
+psql -U postgres -d volunteer_match_board -f schema.sql
+```
 
-For Code Milestone 1, the Volunteer Match Board application includes the initial project setup and a working prototype foundation with PostgreSQL backend support.
+This drops and recreates the Milestone 2 demo tables, then inserts demo users and opportunities.
 
-### Currently Working
+### 4. Start backend and frontend
 
-* React/Vite frontend project is set up and runs locally.
-* Node.js/Express backend project is set up and runs locally.
-* PostgreSQL is installed locally and connected to the backend.
-* The backend connects to PostgreSQL using the `pg` package.
-* The backend automatically creates/checks the required PostgreSQL tables on startup.
-* The backend inserts sample opportunity data into PostgreSQL.
-* The frontend loads opportunity data from the backend API.
-* The backend includes API routes for health status, opportunities, signups, opportunity creation, and prototype login.
-* The application includes a landing page and basic page structure for the Volunteer Match Board.
-* The application includes a prototype volunteer login area.
-* The application includes a prototype opportunity board.
-* The application includes a prototype volunteer signup flow.
-* The application includes a dashboard preview showing current signups.
-* The application includes a prototype organization/admin form for adding a sample opportunity.
-* The application includes a placeholder area for the planned Google Maps integration.
-* The backend includes an in-memory fallback only as a backup if PostgreSQL is unavailable.
+Backend:
 
-### Not Yet Completed
+```bash
+cd server
+npm install
+npm start
+```
 
-* Full user authentication is not complete yet.
-* Organization/admin account permissions are not complete yet.
-* Full volunteer dashboard and signup history are not complete yet.
-* Google Maps API integration is not complete yet.
-* Automated tests will be expanded in later milestones.
-* Production deployment is not complete yet.
+Frontend:
 
-### Notes
+```bash
+cd client
+npm install
+npm run dev
+```
 
-This milestone is consistent with the project plan because Code Milestone 1 was planned as the initial project setup, basic page structure, database connection work, and possible login/register prototype. The project now includes a working React frontend, a Node/Express backend, and a PostgreSQL-backed data layer. The backend attempts PostgreSQL first on startup and reports the database status through the `/api/health` endpoint. The current implementation is still a prototype, but it establishes the main structure needed for later milestones.
+## Notes for Class Demo
+
+The application is not trying to be production authentication. It is a class-demo implementation that shows the correct direction: role-based accounts, email/password validation, salted password hashes, protected API routes, volunteer-only signups, and organization-only event creation.
+
+The temporary login token is stored in browser local storage and also in server memory. Restarting the backend clears active sessions, so users may need to log in again after a restart.
